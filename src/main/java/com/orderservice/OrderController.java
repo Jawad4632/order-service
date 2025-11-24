@@ -2,6 +2,7 @@ package com.orderservice;
 
 import com.orderservice.Dto.OrderCreateRequest;
 import com.orderservice.Dto.OrderResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +17,13 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    private Long getUserId(HttpServletRequest request) {
+        return Long.valueOf(request.getHeader("X-User-Id"));
+    }
+
     @PostMapping
-    public ResponseEntity<Long> createOrder(@RequestBody OrderCreateRequest req) {
+    public ResponseEntity<Long> createOrder(HttpServletRequest request, @RequestBody OrderCreateRequest req) {
+        req.userId();
         Long orderId = orderService.createOrder(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(orderId);
     }
@@ -27,8 +33,9 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrder(orderId));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<OrderResponse>> getOrdersForUser(@PathVariable Long userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<OrderResponse>> getOrdersForUser(HttpServletRequest request) {
+        Long userId = getUserId(request);
         return ResponseEntity.ok(orderService.getOrdersForUser(userId));
     }
 }
